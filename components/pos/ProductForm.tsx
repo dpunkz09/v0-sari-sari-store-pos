@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { Product } from '@/types';
 import { Button } from '@/components/ui/button';
 import {
@@ -13,6 +13,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { FieldGroup, Field, FieldLabel } from '@/components/ui/field';
+import { generateSKU } from '@/lib/formatting';
+import { useProducts } from '@/hooks/usePOS';
 
 interface ProductFormProps {
   product?: Product;
@@ -29,6 +31,7 @@ export function ProductForm({
   onSubmit,
   isLoading = false,
 }: ProductFormProps) {
+  const { products } = useProducts();
   const [formData, setFormData] = useState<Product>(
     product || {
       id: crypto.randomUUID(),
@@ -44,6 +47,15 @@ export function ProductForm({
       createdAt: Date.now(),
     }
   );
+
+  // Auto-generate SKU when product name changes (only for new products)
+  useEffect(() => {
+    if (!product && formData.name.trim()) {
+      const existingSKUs = products.map((p) => p.sku);
+      const newSKU = generateSKU(formData.name, existingSKUs);
+      setFormData((prev) => ({ ...prev, sku: newSKU }));
+    }
+  }, [formData.name, product, products]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,14 +107,16 @@ export function ProductForm({
 
           <FieldGroup>
             <Field>
-              <FieldLabel>SKU *</FieldLabel>
+              <FieldLabel>SKU * {!product && <span className="text-xs text-muted-foreground">(auto-generated)</span>}</FieldLabel>
               <Input
                 value={formData.sku}
                 onChange={(e) =>
                   setFormData({ ...formData, sku: e.target.value })
                 }
-                placeholder="e.g., SKU-001"
+                placeholder="e.g., milopowder"
                 required
+                disabled={!product}
+                className="disabled:opacity-60"
               />
             </Field>
           </FieldGroup>

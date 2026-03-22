@@ -244,13 +244,12 @@ export class Database {
     return new Promise((resolve, reject) => {
       const transaction = this.db!.transaction('promotions', 'readonly');
       const store = transaction.objectStore('promotions');
-      const index = store.index('isActive');
-      const request = index.getAll(true);
+      const request = store.getAll();
       request.onerror = () => reject(request.error);
       request.onsuccess = () => {
         const now = Date.now();
         const active = request.result.filter(
-          (p) => p.startDate <= now && p.endDate >= now
+          (p) => p.isActive && p.startDate <= now && p.endDate >= now
         );
         resolve(active);
       };

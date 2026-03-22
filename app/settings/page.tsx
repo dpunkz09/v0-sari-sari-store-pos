@@ -168,8 +168,8 @@ export default function SettingsPage() {
             <p>
               Sari-Sari POS is a modern, easy-to-use point of sale system designed specifically for sari-sari stores.
             </p>
-            <p>
-              <strong>Features:</strong>
+            <div>
+              <strong className="text-foreground">Features:</strong>
               <ul className="list-disc list-inside mt-2 space-y-1">
                 <li>Barcode scanning and manual entry</li>
                 <li>Customer management and loyalty</li>
@@ -178,7 +178,7 @@ export default function SettingsPage() {
                 <li>Promotional discounts</li>
                 <li>Inventory management</li>
               </ul>
-            </p>
+            </div>
             <p>
               All data is stored locally on your device for fast, offline-first operation.
             </p>

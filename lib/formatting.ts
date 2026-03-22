@@ -1,3 +1,37 @@
+export function generateSKU(productName: string, existingSKUs: string[]): string {
+  // Remove special characters and convert to lowercase
+  const baseSKU = productName
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '')
+    .trim();
+
+  if (!baseSKU) return 'SKU001';
+
+  // Check if base SKU exists
+  if (!existingSKUs.includes(baseSKU)) {
+    return baseSKU;
+  }
+
+  // If exists, add numbered suffix
+  let counter = 1;
+  while (existingSKUs.includes(`${baseSKU}${counter}`)) {
+    counter++;
+  }
+
+  return `${baseSKU}${counter}`;
+}
+
+// Unicode-safe base64 encoding for HTML with special characters
+export function encodeToBase64(str: string): string {
+  try {
+    return btoa(unescape(encodeURIComponent(str)));
+  } catch (error) {
+    // Fallback for edge cases
+    const blob = new Blob([str], { type: 'text/plain' });
+    return URL.createObjectURL(blob);
+  }
+}
+
 export function formatCurrency(amount: number, currency: string = 'PHP'): string {
   return new Intl.NumberFormat('en-PH', {
     style: 'currency',

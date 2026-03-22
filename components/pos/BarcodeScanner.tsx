@@ -5,7 +5,7 @@ import { BrowserMultiFormatReader, NotFoundException } from '@zxing/library';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Camera, X } from 'lucide-react';
 
 interface BarcodeScannerProps {
   onScan: (barcode: string) => void;
@@ -17,10 +17,11 @@ export function BarcodeScanner({ onScan, isActive }: BarcodeScannerProps) {
   const [isScannerReady, setIsScannerReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [manualBarcode, setManualBarcode] = useState('');
+  const [showScanner, setShowScanner] = useState(true);
   const readerRef = useRef<BrowserMultiFormatReader | null>(null);
 
   useEffect(() => {
-    if (!isActive || !videoRef.current) return;
+    if (!isActive || !videoRef.current || !showScanner) return;
 
     const initScanner = async () => {
       try {
@@ -33,7 +34,7 @@ export function BarcodeScanner({ onScan, isActive }: BarcodeScannerProps) {
           return;
         }
 
-        // Use rear camera if available
+        // Prefer rear camera on mobile
         const selectedDevice =
           videoInputDevices.find((device) =>
             device.label.toLowerCase().includes('back')
@@ -49,16 +50,16 @@ export function BarcodeScanner({ onScan, isActive }: BarcodeScannerProps) {
               setManualBarcode('');
             }
             if (error && !(error instanceof NotFoundException)) {
-              console.error('Scan error:', error);
+              console.error('[v0] Scan error:', error);
             }
           }
         );
 
         setIsScannerReady(true);
       } catch (err) {
-        console.error('Scanner init error:', err);
+        console.error('[v0] Scanner init error:', err);
         setError(
-          'Unable to access camera. Make sure you granted permission and try again.'
+          'Unable to access camera. Ensure camera permissions are granted.'
         );
         setIsScannerReady(false);
       }
@@ -71,7 +72,7 @@ export function BarcodeScanner({ onScan, isActive }: BarcodeScannerProps) {
         readerRef.current.reset();
       }
     };
-  }, [isActive, onScan]);
+  }, [isActive, onScan, showScanner]);
 
   const handleManualEntry = (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,33 +82,80 @@ export function BarcodeScanner({ onScan, isActive }: BarcodeScannerProps) {
     }
   };
 
-  if (!isActive) {
-    return null;
+  if (!isActive || !showScanner) {
+    return (
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle className="text-base flex items-center justify-between">
+            <span className="flex items-center gap-2">
+              <Camera className="h-4 w-4" />
+              Scan Product
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowScanner(true)}
+              className="h-8 w-8 p-0"
+            >
+              <Camera className="h-4 w-4" />
+            </Button>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-xs text-muted-foreground">
+            Click the camera icon to start scanning
+          </p>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base">Scan Product Barcode</CardTitle>
+    <Card className="w-full">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base flex items-center justify-between">
+          <span className="flex items-center gap-2">
+            <Camera className="h-4 w-4" />
+            Scan Barcode
+          </span>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowScanner(false)}
+            className="h-8 w-8 p-0 text-muted-foreground"
+            title="Hide scanner"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3">
         {error && (
-          <div className="flex items-start gap-3 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+          <div className="flex items-start gap-3 rounded-lg bg-destructive/10 p-3 text-xs text-destructive">
             <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
             <div>{error}</div>
           </div>
         )}
 
         {isScannerReady && (
-          <video
-            ref={videoRef}
-            className="w-full rounded-lg border-2 border-border bg-black"
-            style={{ maxHeight: '300px', objectFit: 'cover' }}
-          />
+          <div className="relative w-full bg-black rounded-lg overflow-hidden">
+            <video
+              ref={videoRef}
+              className="w-full h-auto"
+              style={{ maxHeight: '300px', objectFit: 'cover' }}
+              playsInline
+              autoPlay
+              muted
+            />
+            <div className="absolute inset-0 pointer-events-none">
+              <div className="absolute inset-0 border-2 border-primary/30" />
+              <div className="absolute top-1/4 left-1/4 right-1/4 bottom-1/4 border-2 border-primary" />
+            </div>
+          </div>
         )}
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-foreground">
+        <div className="space-y-2 pt-2">
+          <label className="text-xs font-medium text-foreground block">
             Or enter manually:
           </label>
           <form onSubmit={handleManualEntry} className="flex gap-2">
@@ -115,10 +163,11 @@ export function BarcodeScanner({ onScan, isActive }: BarcodeScannerProps) {
               autoFocus
               value={manualBarcode}
               onChange={(e) => setManualBarcode(e.target.value)}
-              placeholder="Enter barcode and press Enter"
-              className="flex-1"
+              placeholder="Enter barcode..."
+              className="text-sm h-10"
+              inputMode="numeric"
             />
-            <Button type="submit" className="px-4">
+            <Button type="submit" className="px-3 h-10 text-sm">
               Add
             </Button>
           </form>
