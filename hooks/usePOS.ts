@@ -7,16 +7,19 @@ import type { Product, Customer, Transaction, Promotion, CartItem, PaymentMethod
 export function useProducts() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
     async function init() {
       setLoading(true);
       try {
         await db.init();
+        setInitialized(true);
         const items = await db.getAllProducts();
         setProducts(items);
       } catch (error) {
         console.error('Error loading products:', error);
+        setInitialized(true);
       } finally {
         setLoading(false);
       }
@@ -26,6 +29,7 @@ export function useProducts() {
 
   const addProduct = useCallback(async (product: Product) => {
     try {
+      await db.init();
       await db.addProduct(product);
       setProducts((prev) => [...prev, product]);
     } catch (error) {
@@ -36,6 +40,7 @@ export function useProducts() {
 
   const updateProduct = useCallback(async (product: Product) => {
     try {
+      await db.init();
       await db.updateProduct(product);
       setProducts((prev) => prev.map((p) => (p.id === product.id ? product : p)));
     } catch (error) {
@@ -46,6 +51,7 @@ export function useProducts() {
 
   const deleteProduct = useCallback(async (id: string) => {
     try {
+      await db.init();
       await db.deleteProduct(id);
       setProducts((prev) => prev.filter((p) => p.id !== id));
     } catch (error) {
@@ -56,6 +62,7 @@ export function useProducts() {
 
   const getProductByBarcode = useCallback(async (barcode: string) => {
     try {
+      await db.init();
       return await db.getProductByBarcode(barcode);
     } catch (error) {
       console.error('Error getting product by barcode:', error);
@@ -76,16 +83,19 @@ export function useProducts() {
 export function useCustomers() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(false);
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
     async function init() {
       setLoading(true);
       try {
         await db.init();
+        setInitialized(true);
         const items = await db.getAllCustomers();
         setCustomers(items);
       } catch (error) {
         console.error('Error loading customers:', error);
+        setInitialized(true);
       } finally {
         setLoading(false);
       }
@@ -95,6 +105,7 @@ export function useCustomers() {
 
   const addCustomer = useCallback(async (customer: Customer) => {
     try {
+      await db.init();
       await db.addCustomer(customer);
       setCustomers((prev) => [...prev, customer]);
     } catch (error) {
@@ -105,6 +116,7 @@ export function useCustomers() {
 
   const updateCustomer = useCallback(async (customer: Customer) => {
     try {
+      await db.init();
       await db.updateCustomer(customer);
       setCustomers((prev) => prev.map((c) => (c.id === customer.id ? customer : c)));
     } catch (error) {
@@ -124,16 +136,19 @@ export function useCustomers() {
 export function useTransactions() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(false);
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
     async function init() {
       setLoading(true);
       try {
         await db.init();
+        setInitialized(true);
         const items = await db.getAllTransactions();
         setTransactions(items);
       } catch (error) {
         console.error('Error loading transactions:', error);
+        setInitialized(true);
       } finally {
         setLoading(false);
       }
@@ -143,6 +158,7 @@ export function useTransactions() {
 
   const addTransaction = useCallback(async (transaction: Transaction) => {
     try {
+      await db.init();
       await db.addTransaction(transaction);
       setTransactions((prev) => [...prev, transaction]);
     } catch (error) {
@@ -154,6 +170,7 @@ export function useTransactions() {
   const getTransactionsByDateRange = useCallback(
     async (startDate: number, endDate: number) => {
       try {
+        await db.init();
         return await db.getTransactionsByDate(startDate, endDate);
       } catch (error) {
         console.error('Error getting transactions by date range:', error);
@@ -174,16 +191,19 @@ export function useTransactions() {
 export function usePromotions() {
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [loading, setLoading] = useState(false);
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
     async function init() {
       setLoading(true);
       try {
         await db.init();
+        setInitialized(true);
         const items = await db.getActivePromotions();
         setPromotions(items);
       } catch (error) {
         console.error('Error loading promotions:', error);
+        setInitialized(true);
       } finally {
         setLoading(false);
       }
@@ -193,6 +213,7 @@ export function usePromotions() {
 
   const addPromotion = useCallback(async (promotion: Promotion) => {
     try {
+      await db.init();
       await db.addPromotion(promotion);
       setPromotions((prev) => [...prev, promotion]);
     } catch (error) {
@@ -203,6 +224,7 @@ export function usePromotions() {
 
   const updatePromotion = useCallback(async (promotion: Promotion) => {
     try {
+      await db.init();
       await db.updatePromotion(promotion);
       setPromotions((prev) => prev.map((p) => (p.id === promotion.id ? promotion : p)));
     } catch (error) {
