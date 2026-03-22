@@ -15,6 +15,7 @@ import { Label } from '@/components/ui/label';
 import { FieldGroup, Field, FieldLabel } from '@/components/ui/field';
 import { generateSKU } from '@/lib/formatting';
 import { useProducts } from '@/hooks/usePOS';
+import { BarcodeScanner } from './BarcodeScanner';
 
 interface ProductFormProps {
   product?: Product;
@@ -47,6 +48,7 @@ export function ProductForm({
       createdAt: Date.now(),
     }
   );
+  const [useScannerForBarcode, setUseScannerForBarcode] = useState(false);
 
   // Auto-generate SKU when product name changes (only for new products)
   useEffect(() => {
@@ -76,20 +78,27 @@ export function ProductForm({
           createdAt: Date.now(),
         });
       }
+      setUseScannerForBarcode(false);
       onClose();
     } catch (error) {
       console.error('Form submission error:', error);
     }
   };
 
+  const handleBarcodeScan = (barcode: string) => {
+    setFormData({ ...formData, barcode });
+    setUseScannerForBarcode(false);
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {product ? 'Edit Product' : 'Add New Product'}
           </DialogTitle>
         </DialogHeader>
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <FieldGroup>
             <Field>
@@ -123,14 +132,34 @@ export function ProductForm({
 
           <FieldGroup>
             <Field>
-              <FieldLabel>Barcode</FieldLabel>
-              <Input
-                value={formData.barcode}
-                onChange={(e) =>
-                  setFormData({ ...formData, barcode: e.target.value })
-                }
-                placeholder="e.g., 9555555001234"
-              />
+              <FieldLabel>Barcode (Optional)</FieldLabel>
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <Input
+                    value={formData.barcode}
+                    onChange={(e) =>
+                      setFormData({ ...formData, barcode: e.target.value })
+                    }
+                    placeholder="e.g., 9555555001234"
+                    className="flex-1"
+                    disabled={useScannerForBarcode}
+                  />
+                  <Button
+                    type="button"
+                    variant={useScannerForBarcode ? 'default' : 'outline'}
+                    onClick={() => setUseScannerForBarcode(!useScannerForBarcode)}
+                    className="px-3"
+                  >
+                    {useScannerForBarcode ? 'Scanning' : 'Scan'}
+                  </Button>
+                </div>
+                {useScannerForBarcode && (
+                  <BarcodeScanner
+                    onScan={handleBarcodeScan}
+                    isActive={isOpen && useScannerForBarcode}
+                  />
+                )}
+              </div>
             </Field>
           </FieldGroup>
 
