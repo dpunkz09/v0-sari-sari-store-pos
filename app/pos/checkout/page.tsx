@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarcodeScanner } from '@/components/pos/BarcodeScanner';
 import { ShoppingCart } from '@/components/pos/ShoppingCart';
 import { PaymentProcessor } from '@/components/pos/PaymentProcessor';
+import { ReceiptModal } from '@/components/pos/ReceiptModal';
 import { useProducts, useCart, useCustomers, useTransactions } from '@/hooks/usePOS';
 import { generateReceiptNumber, generateReceiptHTML, formatCurrency, getTodayStart, getTodayEnd, encodeToBase64 } from '@/lib/formatting';
 import { calculateSubtotal, calculateDiscount, calculateTax, calculateTotal } from '@/lib/calculations';
@@ -28,6 +29,7 @@ export default function CheckoutPage() {
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>('');
   const [discountAmount, setDiscountAmount] = useState(0);
   const [lastReceipt, setLastReceipt] = useState<string | null>(null);
+  const [showReceipt, setShowReceipt] = useState(false);
   const [isMobileView, setIsMobileView] = useState(false);
   const [showProductGrid, setShowProductGrid] = useState(false);
 
@@ -130,15 +132,13 @@ export default function CheckoutPage() {
       // Generate and store receipt
       const receipt = generateReceiptHTML(transaction, 'Sari-Sari Store');
       setLastReceipt(receipt);
+      setShowReceipt(true); // Show receipt modal
 
       // Clear cart
       clearCart();
       setSelectedCustomerId('');
       setDiscountAmount(0);
       setShowPayment(false);
-
-      // Show success
-      alert('Sale completed successfully!\nReceipt: ' + receiptNumber);
     } catch (error) {
       console.error('Payment error:', error);
       alert('Error processing payment. Please try again.');
@@ -355,6 +355,13 @@ export default function CheckoutPage() {
             )}
           </div>
         </footer>
+
+        {/* Receipt Modal */}
+        <ReceiptModal
+          receiptHTML={lastReceipt}
+          isOpen={showReceipt}
+          onClose={() => setShowReceipt(false)}
+        />
       </div>
     );
   }
@@ -539,6 +546,13 @@ export default function CheckoutPage() {
         onClose={() => setShowPayment(false)}
         onSubmit={handlePayment}
         isLoading={isProcessing}
+      />
+
+      {/* Receipt Modal */}
+      <ReceiptModal
+        receiptHTML={lastReceipt}
+        isOpen={showReceipt}
+        onClose={() => setShowReceipt(false)}
       />
     </div>
   );
